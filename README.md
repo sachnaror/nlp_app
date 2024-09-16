@@ -31,7 +31,7 @@ This project is a Django web application that analyzes the sentiment of text ext
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/sachnaror/nlp_app
    cd sentiment_analysis
    ```
 
@@ -43,7 +43,7 @@ This project is a Django web application that analyzes the sentiment of text ext
 
 3. Install the required packages:
    ```bash
-   pip install -r requirements.txt
+   pip install -r requirements.txt (i have not added this file)
    ```
 
 4. Run the Django server:
