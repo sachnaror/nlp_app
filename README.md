@@ -5,7 +5,9 @@
 This project is a Django web application that analyzes the sentiment of text extracted from a given URL. It utilizes various libraries such as `TextBlob`, `transformers`, and `VADER` to perform sentiment analysis and provide insights based on the content of the webpage.
 
 
-[![Watch the video](https://img.youtube.com/vi/65basIlogT0/maxresdefault.jpg)](https://www.youtube.com/watch?v=65basIlogT0)
+[![Watch the video](https://img.youtube.com/vi/65basIlogT0/maxresdefault.jpg)](https://www.youtube.com/watch?v=65basIlogT0){ width="550" }
+
+
 
 ## Features
 
