@@ -4,6 +4,7 @@ from django.shortcuts import render
 from textblob import TextBlob
 from transformers import AutoTokenizer, pipeline
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import re
 
 from .models import Article
 
@@ -11,6 +12,14 @@ from .models import Article
 def url_input(request):
     sentiment_score = None
     url = None  # Initialize url variable
+    reasons = []  # Initialize 'reasons' with a default value
+
+    # Clear session or cookie on refresh
+    if request.method == 'GET':
+        request.session.flush()  # Clear session data
+        # Optionally, clear cookies if needed
+        # response.delete_cookie('cookie_name')
+
     if request.method == 'POST':
         url = request.POST.get('url')
         if url:
@@ -19,6 +28,7 @@ def url_input(request):
                 Article.objects.create(url=url, sentiment_score=sentiment_score)
             else:
                 print("Sentiment score is None, not creating Article.")
+
     return render(request, 'sentiment_analysis/url_input.html', {'sentiment_score': sentiment_score, 'url': url, 'reasons': reasons})
 
 
@@ -43,23 +53,17 @@ def analyze_sentiment(url):
             print("No text found for sentiment analysis.")
             return None, []
 
-        # Initialize the sentiment analysis pipeline with model and device
         sentiment_pipeline = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english", device=-1)
-
-        # Perform sentiment analysis directly on the text
         sentiment_results = sentiment_pipeline(text[:512])  # Truncate to 512 characters
 
-        # Extract the sentiment score
         sentiment_label = sentiment_results[0]['label']
         sentiment_score = sentiment_results[0]['score']
 
-        # Map sentiment label to a score (0-10)
         if sentiment_label == 'POSITIVE':
-            score = int((sentiment_score * 10))  # Scale positive score
+            score = int((sentiment_score * 10))
         else:
-            score = int((1 - sentiment_score) * 10)  # Scale negative score
+            score = int((1 - sentiment_score) * 10)
 
-        # Generate reasons for the sentiment score
         reasons = generate_reasons(sentiment_label, text)
 
         return score, reasons
@@ -71,13 +75,23 @@ def analyze_sentiment(url):
 
 def generate_reasons(sentiment_label, text):
     reasons = []
+    numbers = extract_numbers(text)
+
     if sentiment_label == 'POSITIVE':
         reasons.append("The text contains positive phrases and expressions.")
         reasons.append("Overall sentiment is uplifting and encouraging.")
-        reasons.append("Key positive words include: 'great', 'excellent', 'happy'.")
+        if numbers:
+            reasons.append(f"Positive data points include: {', '.join(numbers)}.")
     else:
         reasons.append("The text contains negative phrases and expressions.")
         reasons.append("Overall sentiment is discouraging and pessimistic.")
-        reasons.append("Key negative words include: 'bad', 'poor', 'sad'.")
+        if numbers:
+            reasons.append(f"Negative data points include: {', '.join(numbers)}.")
 
     return reasons
+
+
+def extract_numbers(text):
+    # Find all numbers in the text (including decimals)
+    number_pattern = r'\b\d+(\.\d+)?\b'
+    return re.findall(number_pattern, text)
